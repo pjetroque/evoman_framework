@@ -110,7 +110,7 @@ def mutation(DNA, mutation_rate, sigma, m_b, m_m):
 def mapmutation(child_map, mutation_rate):
     if np.random.uniform(0, 1) < mutation_rate:
         for c in range(len(child_map)):
-            if np.random.uniform(0, 1) < 0.01 and not (c < 10 or 210 < c < 215):
+            if np.random.uniform(0, 1) < 0.005 and not (c < 10 or 210 < c < 215):
                 if child_map[c] == 0:
                     child_map[c] = 1
                 else:
@@ -163,8 +163,8 @@ def get_children(parents, surviving_players, fitness, mutation_base, mutation_mu
         #normalize between min-max
         minimum = -1
         maximum = 1
-        min_sigma = -0.1
-        max_sigma = 0.1
+        min_sigma = -0.3
+        max_sigma = 0.3
         thresh = 0.001
         for j in range(len(child)):
             if j < 265:

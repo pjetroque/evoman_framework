@@ -15,7 +15,7 @@ import time
 import numpy as np
 from math import fabs,sqrt
 import glob, os
-from bio_functions import crossover, mutation, get_children, fitfunc
+from helper_euclidian import crossover, mutation, get_children, fitfunc
 import csv
 import time
 import multiprocessing as mp
@@ -180,8 +180,9 @@ class evo_algorithm:
                 pool = mp.Pool(mp.cpu_count())
             else:
                 pool = mp.Pool(cores)
-                
+
             results = [pool.apply_async(self.play_game, args=(player, self.current_generation, avg_gains, enemy)) for player in pop]
+
             pop = []
             
             #retrieve all the data
@@ -217,19 +218,8 @@ class evo_algorithm:
                     surviving_players.append(ind)
             pool.close()
             avg_gains = 0.25*np.mean(fitness_array) + 0.75*np.max(fitness_array)
-#            if np.max(gains_array) > avg_gains:
-#                if np.max(gains_array) < 0:
-#                    avg_gains = 1.1*np.max(gains_array)
-#                else:
-#                    avg_gains = 0.9*np.max(gains_array)
-#            else:
-#                if avg_gains < 0:
-#                    avg_gains *= 1.1
-#                else:
-#                    avg_gains *= 0.9
-            
+
             self.total_data.append([np.max(gains_array), np.mean(gains_array), np.std(gains_array), np.max(fitness_array), np.mean(fitness_array), np.std(fitness_array)])
-            
             
             ##survival of X best players
             best_players = np.sort(fitness_array, axis=None)[len(fitness_array) - self.survival_number]
@@ -239,14 +229,20 @@ class evo_algorithm:
                 if not index in surviving_players:
                     surviving_players.append(index)
             
+#            if len(surviving_players) > 10:
+#                surviving_players = surviving_players[-10:]
+            
             self.current_generation += 1
             #backup population each X gen
             if self.current_generation%10==9:
                 self.backup_pop(pop, self.current_generation)
             
             
+            mix_pop=False
+            if g%20==19:
+                mix_pop = True
             pop = get_children(pop, surviving_players, np.array(fitness_array),
-                               mutation_baseline, mutation_multiplier)
+                               mutation_baseline, mutation_multiplier, mix_pop)
             
             
             mean_sigmas = np.around(np.mean(np.array(pop)[:,265:], axis=0), decimals=2)
@@ -290,9 +286,9 @@ class evo_algorithm:
 
 if __name__ == '__main__':
     n_hidden_neurons = 10       #number of hidden neurons
-    enemies = [2, 6, 7, 8]               #which enemies
+    enemies = [2, 3]               #which enemies
     run_nr = 1                  #number of runs
-    generations = 300           #number of generations per run
+    generations = 5           #number of generations per run
     population_size = 100        #pop size
     mutation_baseline = 0       #minimal chance for a mutation event
     mutation_multiplier = 0.40  #fitness dependent multiplier of mutation chance
@@ -308,7 +304,7 @@ if __name__ == '__main__':
         if new:
             #start a new run
             evo.simulate()
-            evo.save_results(full=True)
+            evo.save_results(full=False)
         
         else:
             #continue an old run

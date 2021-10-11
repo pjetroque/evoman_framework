@@ -159,7 +159,7 @@ class evo_algorithm:
             #set bias of shoot to 1
             for k in range(len(DNA)):
                 DNA[k,213] = 1
-            sigmas = np.random.uniform(0, 0.1, (self.population_size ,self.n_sigmas))
+            sigmas = np.random.uniform(0, 0.3, (self.population_size ,self.n_sigmas))
             pop = np.hstack((DNA, sigmas))
             mapping = np.ones((self.population_size ,self.n_vars))
         
@@ -251,7 +251,7 @@ class evo_algorithm:
             self.current_generation += 1
             #backup population each X gen
             if self.current_generation%10==9:
-                self.backup_pop(pop, self.current_generation)
+                self.backup_pop(pop, mapping, self.current_generation)
             
             
             pop, mapping = get_children(pop, surviving_players, np.array(fitness_array),
@@ -293,19 +293,22 @@ class evo_algorithm:
                 writer.writerows(self.total_sigma_data)
         return
     
-    def backup_pop(self, population, generation):
+    def backup_pop(self, population, mapping, generation):
         with open(f'data_normal/{self.experiment_name}/pop_backup_{generation}.csv', 'w', newline='', encoding='utf-8') as f:
             writer = csv.writer(f)
             writer.writerows(population)
+        with open(f'data_normal/{self.experiment_name}/mapping_backup_{generation}.csv', 'w', newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
+            writer.writerows(mapping)
 
 if __name__ == '__main__':
     n_hidden_neurons = 10       #number of hidden neurons
-    enemies = [1]               #which enemies
+    enemies = [2, 4, 6]               #which enemies
     run_nr = 1                  #number of runs
-    generations = 50           #number of generations per run
-    population_size = 50        #pop size
+    generations = 100           #number of generations per run
+    population_size = 100        #pop size
     mutation_baseline = 0       #minimal chance for a mutation event
-    mutation_multiplier = 0.40  #fitness dependent multiplier of mutation chance
+    mutation_multiplier = 0.30  #fitness dependent multiplier of mutation chance
     repeats = 4
     fitter = 'standard'
     start = time.time()
