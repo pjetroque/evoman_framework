@@ -17,7 +17,7 @@ def fitfunc(fitfunction, generations, g, t, e, p):
 
     if fitfunction == "standard":
         fitness_smop = 0.9*(100 - e) + 0.1*p - np.log(t)
-        if e == 0:
+        if e < 0.1:
             fitness_smop = 200
 
     if fitfunction == "oscilation":
@@ -122,7 +122,7 @@ def get_children(parents, surviving_players, fitness, mutation_base, mutation_mu
     
     #change all fitness <0 to 0
     fitness = np.array(fitness)
-    fitness = fitness*(fitness > 0) + 50
+    fitness = fitness*(fitness > 0) + 100
     
     if mix_populations:
         #migrate individuals between populations subset --> pops
@@ -180,15 +180,22 @@ def get_children(parents, surviving_players, fitness, mutation_base, mutation_mu
             
             #mutate based on parents fitness
             mutation_rate = 1-0.5*(fit_sub[p1[i]] + fit_sub[p2[i]])/(np.max(fit_sub)+1)
-            if np.std(fit_sub) < 0.05*np.mean(fit_sub):
+            
+            #if converged change heavy
+            converged = False
+            if np.std(fit_sub) < 0.10*np.mean(fit_sub):
+                converged = random.choices([True, False], weights = [90, 10], k=1)
+            
+            if converged:
                 print('yeet')
-                mutation_rate = 0.2
-            child = mutation(DNA, mutation_rate, sigma, mutation_base, mutation_multiplier)
+                child = mutation(DNA, 0.5, [1, 1, 1, 1], 0.5, 0.5)
+            else:
+                child = mutation(DNA, mutation_rate, sigma, mutation_base, mutation_multiplier)
             #normalize between min-max
             minimum = -1
             maximum = 1
-            min_sigma = -0.5
-            max_sigma = 0.5
+            min_sigma = -1
+            max_sigma = 1
             thresh = 0.001
             for j in range(len(child)):
                 if j < 265:
@@ -197,8 +204,8 @@ def get_children(parents, surviving_players, fitness, mutation_base, mutation_mu
                     elif child[j] > maximum:
                         child[j] = maximum
                 else:
-                    if abs(child[j]) < 0.01:
-                        child[j] = 0.01
+                    if abs(child[j]) < 0.1:
+                        child[j] = 0.1
                     if child[j]< min_sigma:
                         child[j] = min_sigma
                     elif child[j] > max_sigma:

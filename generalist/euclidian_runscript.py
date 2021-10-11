@@ -157,7 +157,7 @@ class evo_algorithm:
             #set bias of shoot to 1
             for k in range(len(DNA)):
                 DNA[k,213] = 1
-            sigmas = np.random.uniform(0, 0.3, (self.population_size ,self.n_sigmas))
+            sigmas = np.random.uniform(0.5, 1, (self.population_size ,self.n_sigmas))
             pop = np.hstack((DNA, sigmas))
         
         avg_gains = self.max_gain
@@ -249,7 +249,10 @@ class evo_algorithm:
             mean_sigmas = np.around(np.mean(np.array(pop)[:,265:], axis=0), decimals=2)
             max_sigmas = np.around(np.max(np.array(pop)[:,265:], axis=0), decimals=2)
             min_sigmas = np.around(np.min(np.array(pop)[:,265:], axis=0), decimals=2)
-            print(f'Run: {self.run}, G: {self.current_generation}, F_mean = {round(np.mean(fitness_array),1)} pm {round(np.std(fitness_array),1)}, F_best = {round(np.max(fitness_array),1)}, G_mean = {np.round(np.mean(gains_array),1)}, G_best = {np.round(np.max(gains_array))}, S_mean={mean_sigmas} max:{max_sigmas} min:{min_sigmas}, kills={np.round(np.max(np.sum(kills_array, axis=1)),1)}, surviving={len(surviving_players)}, thr={np.round(avg_gains, 1)} time={round(time.time()-gen_start)}')
+            killmax = np.where(np.sum(kills_array, axis=1) == np.max(np.sum(kills_array, axis=1)))[0][0]
+            
+            
+            print(f'Run: {self.run}, G: {self.current_generation}, F_mean = {round(np.mean(fitness_array),1)} pm {round(np.std(fitness_array),1)}, F_best = {round(np.max(fitness_array),1)}, G_mean = {np.round(np.mean(gains_array),1)}, G_best = {np.round(np.max(gains_array))}, S_mean={mean_sigmas} max:{max_sigmas} min:{min_sigmas}, kills={kills_array[killmax]}, surviving={len(surviving_players)}, thr={np.round(avg_gains, 1)} time={round(time.time()-gen_start)}')
         return
     
     def save_results(self, full = False, append = False):
@@ -287,11 +290,11 @@ class evo_algorithm:
 
 if __name__ == '__main__':
     n_hidden_neurons = 10       #number of hidden neurons
-    enemies = [2, 4]               #which enemies
+    enemies = [1, 3, 6]               #which enemies
     run_nr = 1                  #number of runs
-    generations = 10           #number of generations per run
-    population_size = 100        #pop size
-    mutation_baseline = 0.1       #minimal chance for a mutation event
+    generations = 100           #number of generations per run
+    population_size = 150        #pop size
+    mutation_baseline = 0.05       #minimal chance for a mutation event
     mutation_multiplier = 0.40  #fitness dependent multiplier of mutation chance
     repeats = 4
     fitter = 'standard'

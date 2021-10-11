@@ -34,10 +34,11 @@ env = Environment(experiment_name=experiment_name,
 
 # tests saved demo solutions for each enemy
 for en in range(8):
-    env.update_parameter('enemies',[1])
-    env.randomini = en%4
-    
-	# Load specialist controller
-    sol = np.loadtxt(f'data_normal/enemy_[1]_standard/best_sol_0.csv', delimiter=',')
-    print('\n LOADING SAVED SPECIALIST SOLUTION FOR ENEMY '+str(en)+' \n')
-    env.play(sol[:265])
+    for rep in range(4):
+        env.update_parameter('enemies',[en+1])
+        env.randomini = rep%4
+        
+        # Load specialist controller
+        sol = np.loadtxt(f'data_normal/enemy_[1]_standard/best_sol_0.csv', delimiter=',')
+        print('\n LOADING SAVED SPECIALIST SOLUTION FOR ENEMY '+str(en)+' \n')
+        env.play(sol[:265])
