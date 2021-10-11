@@ -122,7 +122,7 @@ def get_children(parents, surviving_players, fitness, mutation_base, mutation_mu
     
     #change all fitness <0 to 0
     fitness = np.array(fitness)
-    fitness = fitness*(fitness > 0)
+    fitness = fitness*(fitness > 0) + 50
     
     if mix_populations:
         #migrate individuals between populations subset --> pops
@@ -136,7 +136,6 @@ def get_children(parents, surviving_players, fitness, mutation_base, mutation_mu
         ind = 0
         n_pop = len(fit_sub)
         
-        
         for boe in range(len(children)):
             if kmeans[boe]==subset:
                 if boe in surviving_players:
@@ -145,20 +144,17 @@ def get_children(parents, surviving_players, fitness, mutation_base, mutation_mu
         
         if len(surviving_sub) > 2:
             surviving_sub = random.choices(surviving_sub, k=2)
-        print(surviving_sub)
         
         if mix_populations:
             #random choose 2 members from the other pop to add
-            pick = 1
-            unique, counts = np.unique(kmeans, return_counts=True)
-            if min(counts) > 1:
-                pick = 2
+            pick = 4
             
             mix = pops[subset]
             extra_pop = random.choices(np.where(kmeans == mix)[0], k=pick)
             fit_sub = np.hstack([fit_sub, fitness[extra_pop]])
             children_sub = np.vstack([children_sub, children[extra_pop]])
-
+        
+        print(fit_sub)
         if not len(surviving_sub) == n_pop:
             #pick parents based on fitness (fitness = weigth)
             parents_index = np.arange(0, len(children_sub), dtype=int)
@@ -184,13 +180,15 @@ def get_children(parents, surviving_players, fitness, mutation_base, mutation_mu
             
             #mutate based on parents fitness
             mutation_rate = 1-0.5*(fit_sub[p1[i]] + fit_sub[p2[i]])/(np.max(fit_sub)+1)
+            if np.std(fit_sub) < 0.05*np.mean(fit_sub):
+                print('yeet')
+                mutation_rate = 0.2
             child = mutation(DNA, mutation_rate, sigma, mutation_base, mutation_multiplier)
-
             #normalize between min-max
             minimum = -1
             maximum = 1
-            min_sigma = -0.3
-            max_sigma = 0.3
+            min_sigma = -0.5
+            max_sigma = 0.5
             thresh = 0.001
             for j in range(len(child)):
                 if j < 265:
@@ -199,8 +197,8 @@ def get_children(parents, surviving_players, fitness, mutation_base, mutation_mu
                     elif child[j] > maximum:
                         child[j] = maximum
                 else:
-                    if abs(child[j]) < 0.001:
-                        child[j] = 0.001
+                    if abs(child[j]) < 0.01:
+                        child[j] = 0.01
                     if child[j]< min_sigma:
                         child[j] = min_sigma
                     elif child[j] > max_sigma:

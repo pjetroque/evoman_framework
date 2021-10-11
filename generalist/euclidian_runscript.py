@@ -241,8 +241,9 @@ class evo_algorithm:
             mix_pop=False
             if g%20==19:
                 mix_pop = True
+                print('MINGLETIME')
             pop = get_children(pop, surviving_players, np.array(fitness_array),
-                               mutation_baseline, mutation_multiplier, mix_pop)
+                               self.mutation_baseline, self.mutation_multiplier, mix_pop)
             
             
             mean_sigmas = np.around(np.mean(np.array(pop)[:,265:], axis=0), decimals=2)
@@ -286,11 +287,11 @@ class evo_algorithm:
 
 if __name__ == '__main__':
     n_hidden_neurons = 10       #number of hidden neurons
-    enemies = [2, 3]               #which enemies
+    enemies = [2, 4]               #which enemies
     run_nr = 1                  #number of runs
-    generations = 5           #number of generations per run
+    generations = 10           #number of generations per run
     population_size = 100        #pop size
-    mutation_baseline = 0       #minimal chance for a mutation event
+    mutation_baseline = 0.1       #minimal chance for a mutation event
     mutation_multiplier = 0.40  #fitness dependent multiplier of mutation chance
     repeats = 4
     fitter = 'standard'
