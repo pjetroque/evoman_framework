@@ -80,7 +80,7 @@ class meta_evo_algorithm:
             for individual in range(self.pop_size_meta):
                 mutation_baseline = params[individual, 0]
                 mutation_multiplier = params[individual, 1]
-                survival_number = params[individual, 2]
+                survival_number = int(params[individual, 2])
 
                 print(DNA[individual,:])
 
@@ -111,6 +111,11 @@ class meta_evo_algorithm:
                                self.mutation_multiplier_meta)
 
         best_solutions = np.array(best_sol)
+
+        # make save folder
+        if not os.path.exists(f'data_meta/{self.experiment_name}'):
+            os.makedirs(f'data_meta/{self.experiment_name}')
+
         np.savetxt(f"data_meta/{self.experiment_name}/best_solutions_meta_{run}.csv", best_solutions, delimiter=",")
 
 def main():
