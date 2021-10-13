@@ -125,9 +125,9 @@ def main():
     run_nr_meta = 5           #number of meta experiments
     run_nr = 4                  #number of runs
     generations_meta = 10 #number of experiment generations
-    pop_size_meta = 20 #meta pop size
-    generations_runs = 20           #number of generations per run
-    pop_size_runs = 5        #pop size
+    pop_size_meta = 10 #meta pop size
+    generations_runs = 10           #number of generations per run
+    pop_size_runs = 50        #pop size
     survival_number_meta = 4
     mutation_baseline_meta = 0       #minimal chance for a mutation event
     mutation_multiplier_meta = 0.40  #fitness dependent multiplier of mutation chance

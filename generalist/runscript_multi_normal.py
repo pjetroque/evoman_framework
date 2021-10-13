@@ -235,7 +235,7 @@ class evo_algorithm:
             
             ##survival of X best players
 
-            best_players = np.sort(fitness_array, axis=None)[len(fitness_array) - self.survival_number]
+            best_players = np.sort(fitness_array, axis=None)[len(fitness_array) -1 - self.survival_number]
             indexes = np.where(fitness_array >= best_players)[0]
             
             for index in indexes:
