@@ -28,12 +28,16 @@ def fitfunc(fitfunction, generations, g, t, e, p):
         fitness_smop =  100/(100-(0.9*(100 - e) + 0.1*p - np.log(t)))
 
     if fitfunction == "errfoscilation":
-        if g < 0.5*generations:
-            fitness_smop =  (0.01*t)**2
-            if t == 1000:
+        if g < generations+10:
+            fitness_smop =  (0.005*t)**2
+            if t > 800-g:
                 fitness_smop += .5*( 100 - e + p)
+            if e < 0.1:
+                fitness_smop += 100
         else:
-            fitness_smop = 150 - e + p - np.log(t)
+            fitness_smop = (150 - e + p)
+            if e < 0.1:
+                fitness_smop += 200
 
     return fitness_smop
 
@@ -115,14 +119,14 @@ def get_children(parents, surviving_players, fitness, mutation_base, mutation_mu
     children = np.array(copy.deepcopy(parents))
     next_gen = []
     
-    cluster_amount = 5
+    cluster_amount = 7
     
     kmeans = KMeans(n_clusters=cluster_amount, random_state=0).fit(children).labels_
     print(kmeans)
     
     #change all fitness <0 to 0
     fitness = np.array(fitness)
-    fitness = fitness*(fitness > 0) + 100
+    fitness = fitness*(fitness > 0) + 10
     
     if mix_populations:
         #migrate individuals between populations subset --> pops
@@ -170,6 +174,7 @@ def get_children(parents, surviving_players, fitness, mutation_base, mutation_mu
             p2 = surviving_sub
 
         #iterate to make children
+        diff = 0
         for i in range(n_pop):
             #crossover the genes of parents and random choose a child
             #child = random.choice(crossover(parents[p1[i]], parents[p2[i]]))
@@ -183,35 +188,43 @@ def get_children(parents, surviving_players, fitness, mutation_base, mutation_mu
             
             #if converged change heavy
             converged = False
-            if np.std(fit_sub) < 0.10*np.mean(fit_sub):
+            if np.std(fit_sub) < 0.02*np.mean(fit_sub) and len(fit_sub)>1:
                 converged = random.choices([True, False], weights = [90, 10], k=1)
             
             if converged:
                 print('yeet')
-                child = mutation(DNA, 0.5, [1, 1, 1, 1], 0.5, 0.5)
+                child = mutation(DNA, 0.75, [0.5, 0.5, 0.5, 0.5], 0.5, 0.5)
             else:
                 child = mutation(DNA, mutation_rate, sigma, mutation_base, mutation_multiplier)
+            diff += np.sum(abs(children_sub[p1[i]]-child))
+            
             #normalize between min-max
             minimum = -1
             maximum = 1
-            min_sigma = -1
-            max_sigma = 1
+            min_sigma = -0.5
+            max_sigma = 0.5
             thresh = 0.001
+            
+            
             for j in range(len(child)):
                 if j < 265:
+                    #child[j] = (maximum-minimum)*(child[j]-child.min())/(child.max()-child.min())+minimum
                     if child[j]< minimum:
                         child[j] = minimum
                     elif child[j] > maximum:
                         child[j] = maximum
                 else:
-                    if abs(child[j]) < 0.1:
+                    if child[j] < 0.1:
                         child[j] = 0.1
-                    if child[j]< min_sigma:
-                        child[j] = min_sigma
-                    elif child[j] > max_sigma:
-                        child[j] = max_sigma
+                    elif child[j] > 0.5:
+                        child[j] = 0.5
+#                    if child[j]< min_sigma:
+#                        child[j] = min_sigma
+#                    elif child[j] > max_sigma:
+#                        child[j] = max_sigma
                     
             #child = (maximum-minimum)*(child-child.min())/(child.max()-child.min())+minimum
             next_gen.append(child)
+        print(diff)
 
     return next_gen

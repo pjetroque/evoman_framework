@@ -6,7 +6,7 @@
 
 # imports framework
 import sys
-sys.path.insert(0, 'evoman_sneaky')
+sys.path.insert(0, 'evoman')
 from environment import Environment
 from demo_controller import player_controller
 
@@ -26,7 +26,78 @@ os.environ["SDL_VIDEODRIVER"] = "dummy"
 #make sure to not print every startup of the pygame
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"    
 
-
+def play_game(player, g, avg_gains, enemies, total_generations, nvars, exp_name, fittert):
+    '''
+    A function that starts a game against a given set of enemies for a number of repeats in order to evaluate a specific solution vector.
+    
+    Inputs:
+        player      = [array] the DNA (weights + biases neural network) and the sigmas
+        g           = [int]   the current generation
+        avg_fitness = [float] the avg_fitness of the previous generation
+        enemies     = [list]  the enemies to train on
+        
+    Outputs:
+        player      = [array] the DNA
+        surviving_player = [boolean] if the player survived or not
+        mean_gains  = [float] average gains
+        gains       = [list]  the gains of the individual enemies
+        fitness_smop= [float] average fitness values
+        times       = [list]  the runtimes
+        healths     = [list]  healths_player
+        healths_e   = [list]  healths_enemies
+        kills       = [list]  list with kill fraction per enemy
+    '''
+    
+    # initializes simulation in individual evolution mode, for single static enemy.
+    env = Environment(experiment_name=f'data_normal/{exp_name}',
+                      playermode="ai",
+                      player_controller=player_controller(10),
+                      enemymode="static",
+                      level=2,
+                      speed="fastest",
+                      randomini = "no")
+    fitness_smop = 0
+    repeats = 1
+    gains = []
+    health_player = []
+    health_enemies = []
+    times = []
+    kills = []
+    surviving_player = False
+    
+    
+    #battle each enemy in this list
+    for enemy in enemies:
+        gain_avg = 0
+        time_avg = 0
+        health = 0
+        health_enemy = 0
+        kill = 0
+        
+        #repeat each player to counter the randomness
+        for i in range(repeats):
+            #env.randomini = i
+            f, p, e, t = env.run_single(enemy, pcont=player[:nvars], econt="None")
+            
+            fitness_smop += fitfunc(fittert, total_generations, g, t, e, p)*(1/repeats)
+            health += (1/repeats)*p
+            health_enemy += (1/repeats)*e
+            time_avg += (1/repeats)*t
+            gain_avg += (1/repeats)*p - (1/repeats)*e
+            if e == 0:
+                kill += (1/repeats)
+            
+        gains.append(gain_avg)
+        health_player.append(health)
+        health_enemies.append(health_enemy)
+        times.append(time_avg)
+        kills.append(kill)
+        
+    #if nog good enough 'die'
+    if fitness_smop > avg_gains:
+        surviving_player = True
+    return [player, surviving_player, np.sum(gains), gains, fitness_smop, times, health_player, health_enemies, kills]
+    
 class evo_algorithm:
     '''
     The main Class containing the algorithm for a set of inputs.
@@ -73,78 +144,7 @@ class evo_algorithm:
         if not os.path.exists(f'data_normal/{self.experiment_name}'):
             os.makedirs(f'data_normal/{self.experiment_name}')  
     
-    def play_game(self, player, g, avg_gains, enemies):
-        '''
-        A function that starts a game against a given set of enemies for a number of repeats in order to evaluate a specific solution vector.
-        
-        Inputs:
-            player      = [array] the DNA (weights + biases neural network) and the sigmas
-            g           = [int]   the current generation
-            avg_fitness = [float] the avg_fitness of the previous generation
-            enemies     = [list]  the enemies to train on
-            
-        Outputs:
-            player      = [array] the DNA
-            surviving_player = [boolean] if the player survived or not
-            mean_gains  = [float] average gains
-            gains       = [list]  the gains of the individual enemies
-            fitness_smop= [float] average fitness values
-            times       = [list]  the runtimes
-            healths     = [list]  healths_player
-            healths_e   = [list]  healths_enemies
-            kills       = [list]  list with kill fraction per enemy
-        '''
-        
-        # initializes simulation in individual evolution mode, for single static enemy.
-        env = Environment(experiment_name=f'data_normal/{self.experiment_name}',
-                          playermode="ai",
-                          player_controller=player_controller(self.n_hidden_neurons),
-                          enemymode="static",
-                          level=2,
-                          speed="fastest",
-                          randomini = "yes")
-        fitness_smop = 0
-        repeats = self.repeats
-        gains = []
-        health_player = []
-        health_enemies = []
-        times = []
-        kills = []
-        surviving_player = False
-        
-        
-        #battle each enemy in this list
-        for enemy in enemies:
-            gain_avg = 0
-            time_avg = 0
-            health = 0
-            health_enemy = 0
-            kill = 0
-            
-            #repeat each player to counter the randomness
-            for i in range(repeats):
-                env.randomini = i
-                f, p, e, t = env.run_single(enemy, pcont=player[:self.n_vars], econt="None")
-                
-                fitness_smop += fitfunc(self.fitter, self.generations, g, t, e, p)*(1/repeats)
-                health += (1/repeats)*p
-                health_enemy += (1/repeats)*e
-                time_avg += (1/repeats)*t
-                gain_avg += (1/repeats)*p - (1/repeats)*e
-                if e == 0:
-                    kill += (1/repeats)
-                
-            gains.append(gain_avg)
-            health_player.append(health)
-            health_enemies.append(health_enemy)
-            times.append(time_avg)
-            kills.append(kill)
-            
-        #if nog good enough 'die'
-        if fitness_smop > avg_gains:
-            surviving_player = True
-        
-        return [player, surviving_player, np.sum(gains), gains, fitness_smop, times, health_player, health_enemies, kills]
+
     
     def simulate(self, pop = []):
         '''
@@ -156,11 +156,18 @@ class evo_algorithm:
             DNA = np.random.uniform(-1, 1, (self.population_size ,self.n_vars))
             #set bias of shoot to 1
             for k in range(len(DNA)):
-                DNA[k,213] = 1
-            sigmas = np.random.uniform(0.5, 1, (self.population_size ,self.n_sigmas))
+                DNA[k,213] = -5
+                DNA[k,212] = 0
+                DNA[k,211] = 0
+                DNA[k,210] = 0
+                DNA[k,214] = 0
+            sigmas = np.random.uniform(0.2, 0.5, (self.population_size ,self.n_sigmas))
+            sigmas[0] = 0.1
+            sigmas[3] = 0.1
             pop = np.hstack((DNA, sigmas))
         
         avg_gains = self.max_gain
+        max_kills = 0
         
         for g in range(self.generations):
             gen_start = time.time()
@@ -181,7 +188,7 @@ class evo_algorithm:
             else:
                 pool = mp.Pool(cores)
 
-            results = [pool.apply_async(self.play_game, args=(player, self.current_generation, avg_gains, enemy)) for player in pop]
+            results = [pool.apply_async(play_game, args=(player, self.current_generation, avg_gains, enemy, self.generations, self.n_vars, self.experiment_name, self.fitter)) for player in pop]
 
             pop = []
             
@@ -208,11 +215,20 @@ class evo_algorithm:
                 sigma_array.append(r[0][265:])
                 
                 #sigma data + some others
-                self.total_sigma_data.append([self.current_generation]+list(np.concatenate([gains, kills, r[0][265:]]).flat))
+                #self.total_sigma_data.append([self.current_generation]+list(np.concatenate([gains, kills, r[0][265:]]).flat))
                 
-                if avg_gain > self.max_gain:
+                if fitness > self.max_gain:
                     self.max_gain = fitness
                     self.best = r[0]
+                    #self.best[213] = 1
+                    with open(f'data_normal/{self.experiment_name}/best_sol_{self.run}.csv', 'w', newline='', encoding='utf-8') as f:
+                        writer = csv.writer(f)
+                        writer.writerow(self.best)
+                if np.sum(kills) > max_kills:
+                    max_kills = np.sum(kills)
+                    with open(f'data_normal/{self.experiment_name}/kills_sol_{self.run}.csv', 'w', newline='', encoding='utf-8') as f:
+                        writer = csv.writer(f)
+                        writer.writerow(r[0])
                     
                 if survive:
                     surviving_players.append(ind)
@@ -290,14 +306,14 @@ class evo_algorithm:
 
 if __name__ == '__main__':
     n_hidden_neurons = 10       #number of hidden neurons
-    enemies = [1, 3, 6]               #which enemies
+    enemies = [1, 2, 4]          #which enemies
     run_nr = 1                  #number of runs
-    generations = 100           #number of generations per run
-    population_size = 150        #pop size
-    mutation_baseline = 0.05       #minimal chance for a mutation event
-    mutation_multiplier = 0.40  #fitness dependent multiplier of mutation chance
-    repeats = 4
-    fitter = 'standard'
+    generations = 500           #number of generations per run
+    population_size = 400        #pop size
+    mutation_baseline = 0.01       #minimal chance for a mutation event
+    mutation_multiplier = 0.8  #fitness dependent multiplier of mutation chance
+    repeats = 1
+    fitter = 'errfoscilation'
     start = time.time()
     cores = 'max'
     new = True

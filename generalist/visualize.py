@@ -8,7 +8,7 @@
 
 # imports framework
 import sys, os
-sys.path.insert(0, 'evoman_sneaky')
+sys.path.insert(0, 'evoman')
 from environment_draw import Environment
 from demo_controller import player_controller
 
@@ -29,16 +29,14 @@ env = Environment(experiment_name=experiment_name,
 			  	  speed="normal",
 				  enemymode="static",
 				  level=2,
-				  randomini="yes")
+				  randomini="no")
 
 
 # tests saved demo solutions for each enemy
 for en in range(8):
-    for rep in range(4):
-        env.update_parameter('enemies',[en+1])
-        env.randomini = rep%4
-        
-        # Load specialist controller
-        sol = np.loadtxt(f'data_normal/enemy_[1]_standard/best_sol_0.csv', delimiter=',')
-        print('\n LOADING SAVED SPECIALIST SOLUTION FOR ENEMY '+str(en)+' \n')
-        env.play(sol[:265])
+    env.update_parameter('enemies',[en+1])
+    
+    # Load specialist controller
+    sol = np.loadtxt(f'data_normal/enemy_[1, 2, 4]_errfoscilation/best_sol_0.csv', delimiter=',')
+    print('\n LOADING SAVED SPECIALIST SOLUTION FOR ENEMY '+str(en+1)+' \n')
+    env.play(sol[:265])
