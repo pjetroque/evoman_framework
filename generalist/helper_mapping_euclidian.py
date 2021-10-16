@@ -16,7 +16,7 @@ from sklearn.cluster import KMeans
 def fitfunc(fitfunction, generations, g, t, e, p):
 
     if fitfunction == "standard":
-        fitness_smop = 0.9*(100 - e) + 0.1*p - np.log(t)
+        fitness_smop = 0.9*(100 - e) + 0.1*p
         if e < 0.1:
             fitness_smop = 200
 
@@ -37,7 +37,7 @@ def fitfunc(fitfunction, generations, g, t, e, p):
         else:
             fitness_smop = (150 - e + p)
             if e < 0.1:
-                fitness_smop += 200
+                fitness_smop = 250
 
     return fitness_smop
 
@@ -132,9 +132,8 @@ def get_children(parents, mapping, surviving_players, fitness, mutation_base, mu
     children_mapping = []
     next_gen = []
     
-    cluster_amount = 7
-    
-    print(f'diff_pop={np.sum(distance_matrix(children[:,:265]*mapping))/((len(parents)**2-len(parents))*530)}')
+    cluster_amount = 6
+    print(f'diff_pop={np.max(distance_matrix(children[:,:265]*mapping, children[:,:265]*mapping))}')
     kmeans = KMeans(n_clusters=cluster_amount, random_state=0).fit(children[:,:265]*mapping).labels_
     
     #change all fitness <0 to 0
