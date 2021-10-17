@@ -47,9 +47,9 @@ def line_plots(folders, runs):
     '''Creates a line plot for one training group of enemies showing the performance
     of different algorithm results located in folers.'''
 
-    labels = [['Max alg 1', 'Mean alg 1'], ['Max alg 2', 'Mean alg 2']]
+    labels = [['Max Euclidean', 'Mean Euclidean'], ['Max Regulatory', 'Mean Regulatory']]
     colors = ['C0', 'C1']
-    save = 'final_plot_data/lineplot_test.png'
+    save = 'final_plot_data/lineplot_[2, 3, 5, 7].png'
     fig, ax = plt.subplots()
 
     for i, f in enumerate(folders):
@@ -69,6 +69,7 @@ def line_plots(folders, runs):
     ax.set_xlim(1, generations)
     ax.set_xticks(np.arange(1, generations+1, int(generations/10)))
     # plt.ylim(-110,120)
+    plt.text(12, -300, 'Enemies 2, 3, 5, 7', fontsize=14)
     plt.xlabel('Generation', fontsize=14)
     plt.ylabel('Gain', fontsize=14)
     plt.legend(loc = 'lower right')
@@ -78,8 +79,8 @@ def line_plots(folders, runs):
 
 
 
-data_folder_alg1 = 'data_normal/enemy_[2, 6]_standard_testforplots' #folder with data for algorithm 1
-data_folder_alg2 = 'data_normal/enemy_[2, 6]_standard_testforplots' #folder with data for algorithm 2
-runs =  #should be 10 for final runs
+data_folder_alg1 = 'data_normal/enemy_[2, 3, 5, 7]_standard_eucl' #folder with data for algorithm 1
+data_folder_alg2 = 'data_normal/enemy_[2, 3, 5, 7]_standard_reg' #folder with data for algorithm 2
+runs = 10  #should be 10 for final runs
 folders = [data_folder_alg1, data_folder_alg2]
 line_plots(folders, runs)

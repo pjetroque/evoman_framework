@@ -12,7 +12,7 @@ import time
 import numpy as np
 from math import fabs,sqrt
 import glob, os
-from bio_functions import crossover, mutation, get_children, fitfunc
+# from bio_functions import crossover, mutation, get_children, fitfunc
 import csv
 import matplotlib.pyplot as plt
 
@@ -47,7 +47,7 @@ def run_winners(folder, runs):
                           enemymode="static",
                           level=2,
                           speed="fastest",
-                          randomini = "yes")
+                          randomini = "no")
 
         #open data
         with open(f'{folder}/best_sol_{run}.csv', newline='', encoding='utf-8') as f:
@@ -73,9 +73,9 @@ def run_winners(folder, runs):
 
 
 def boxplots(folders, runs):
-    ticklabels = ['             Training group 1','', '             Training group 2', '']
+    ticklabels = ['             Trained on 2, 3, 5, 7','', '             Trained on 1, 4, 5, 7', '']
     fig, ax = plt.subplots()
-    save = 'final_plot_data/boxplot_test.png'
+    save = 'final_plot_data/boxplot_final_norandomini.png'
 
     for idx, f in enumerate(folders):
         gain_list_alg1 = run_winners(f[0], runs)
@@ -90,16 +90,15 @@ def boxplots(folders, runs):
             boxprops=dict(facecolor='b', alpha = 0.6), medianprops = dict(color = 'k'), widths = 0.4 )
 
     ax.set_xticklabels(ticklabels, fontsize = 14)
-    plt.legend([bp1["boxes"][0], bp2["boxes"][0]], ["Alg 1", "Alg 2"], loc='lower right')
+    plt.legend([bp1["boxes"][0], bp2["boxes"][0]], ["Euclidean", "Regulatory"], loc='lower left')
     plt.ylabel('Gain', fontsize=14)
     plt.savefig(save, dpi=300)
     plt.show()
 
-
-folder_alg1_group1 = 'data_normal/enemy_[2, 6]_standard_testforplots' # folder with data for algorithm 1 for enemy group 1
-folder_alg2_group1 = 'data_normal/enemy_[2, 6]_standard_testforplots' # folder with data for algorithm 2 for enemy group 1
-folder_alg1_group2 = 'data_normal/enemy_[2, 6]_standard_testforplots' # folder with data for algorithm 1 for enemy group 2
-folder_alg2_group2 = 'data_normal/enemy_[2, 6]_standard_testforplots' # folder with data for algorithm 2 for enemy group 2
-runs = #should be 10 for final runs
+folder_alg1_group1 = 'data_normal/enemy_[2, 3, 5, 7]_standard_eucl' # folder with data for algorithm 1 for enemy group 1
+folder_alg2_group1 = 'data_normal/enemy_[2, 3, 5, 7]_standard_reg'# folder with data for algorithm 2 for enemy group 1
+folder_alg1_group2 = 'data_normal/enemy_[1, 4, 6, 8]_standard_eucl' # folder with data for algorithm 1 for enemy group 2
+folder_alg2_group2 = 'data_normal/enemy_[1, 4, 6, 8]_standard_reg' # folder with data for algorithm 2 for enemy group 2
+runs = 10 #should be 10 for final runs
 folders = [(folder_alg1_group1, folder_alg2_group1), (folder_alg1_group2, folder_alg2_group2)]
 boxplots(folders, runs)

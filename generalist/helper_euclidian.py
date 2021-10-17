@@ -115,49 +115,49 @@ def mutation(DNA, mutation_rate, sigma, m_b, m_m):
     return np.hstack((c1, sigma))
 
 def get_children(parents, surviving_players, fitness, mutation_base, mutation_multiplier, mix_populations):
-   
+
     children = np.array(copy.deepcopy(parents))
     next_gen = []
-    
-    cluster_amount = 7
-    
+
+    cluster_amount = 6
+
     kmeans = KMeans(n_clusters=cluster_amount, random_state=0).fit(children).labels_
     print(kmeans)
-    
+
     #change all fitness <0 to 0
     fitness = np.array(fitness)
     fitness = fitness*(fitness > 0) + 10
-    
+
     if mix_populations:
         #migrate individuals between populations subset --> pops
         pops = np.arange(cluster_amount, dtype=int)
         random.shuffle(pops)
-        
+
     for subset in range(cluster_amount):
         surviving_sub = []
         fit_sub = fitness[kmeans==subset]
         children_sub = children[kmeans==subset]
         ind = 0
         n_pop = len(fit_sub)
-        
+
         for boe in range(len(children)):
             if kmeans[boe]==subset:
                 if boe in surviving_players:
                     surviving_sub.append(ind)
                 ind += 1
-        
+
         if len(surviving_sub) > 2:
             surviving_sub = random.choices(surviving_sub, k=2)
-        
+
         if mix_populations:
             #random choose 2 members from the other pop to add
             pick = 4
-            
+
             mix = pops[subset]
             extra_pop = random.choices(np.where(kmeans == mix)[0], k=pick)
             fit_sub = np.hstack([fit_sub, fitness[extra_pop]])
             children_sub = np.vstack([children_sub, children[extra_pop]])
-        
+
         print(fit_sub)
         if not len(surviving_sub) == n_pop:
             #pick parents based on fitness (fitness = weigth)
@@ -179,33 +179,33 @@ def get_children(parents, surviving_players, fitness, mutation_base, mutation_mu
             #crossover the genes of parents and random choose a child
             #child = random.choice(crossover(parents[p1[i]], parents[p2[i]]))
             child = weighted_crossover(children_sub[p1[i]], children_sub[p2[i]], fit_sub[p1[i]], fit_sub[p2[i]])
-            
+
             DNA   = child[:265]
             sigma = child[265:]
-            
+
             #mutate based on parents fitness
             mutation_rate = 1-0.5*(fit_sub[p1[i]] + fit_sub[p2[i]])/(np.max(fit_sub)+1)
-            
+
             #if converged change heavy
             converged = False
             if np.std(fit_sub) < 0.02*np.mean(fit_sub) and len(fit_sub)>1:
                 converged = random.choices([True, False], weights = [90, 10], k=1)
-            
+
             if converged:
                 print('yeet')
                 child = mutation(DNA, 0.75, [0.5, 0.5, 0.5, 0.5], 0.5, 0.5)
             else:
                 child = mutation(DNA, mutation_rate, sigma, mutation_base, mutation_multiplier)
             diff += np.sum(abs(children_sub[p1[i]]-child))
-            
+
             #normalize between min-max
             minimum = -1
             maximum = 1
             min_sigma = -0.5
             max_sigma = 0.5
             thresh = 0.001
-            
-            
+
+
             for j in range(len(child)):
                 if j < 265:
                     #child[j] = (maximum-minimum)*(child[j]-child.min())/(child.max()-child.min())+minimum
@@ -222,7 +222,7 @@ def get_children(parents, surviving_players, fitness, mutation_base, mutation_mu
 #                        child[j] = min_sigma
 #                    elif child[j] > max_sigma:
 #                        child[j] = max_sigma
-                    
+
             #child = (maximum-minimum)*(child-child.min())/(child.max()-child.min())+minimum
             next_gen.append(child)
         print(diff)
