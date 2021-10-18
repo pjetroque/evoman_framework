@@ -28,10 +28,9 @@ if not os.path.exists(experiment_name):
     os.makedirs(experiment_name)
 
 
-def run_winners(folder, runs):
+def run_winners(folder, runs, enemy):
     n_hidden_neurons = 10       #number of hidden neurons
     n_vars = (20+1)*n_hidden_neurons + (n_hidden_neurons+1)*5
-    enemy = [1,2,3,4,5,6,7,8]   #which enemy
     population_size = 100       #pop size
     test_number = 5             #times to run the best individual
 
@@ -73,15 +72,19 @@ def run_winners(folder, runs):
 
 
 def boxplots(folders, runs):
-    ticklabels = ['             Trained on 2, 3, 5, 7','', '             Trained on 1, 4, 6, 8', '']
+    ticklabels = ['             Enemies 2, 3, 5, 7','', '             Enemies 1, 4, 6, 8', '']
     fig, ax = plt.subplots()
-    save = 'final_plot_data/boxplot_final_norandomini.png'
-    plt.grid(axis='y')
-    plt.axhline(y=0, color='Grey', linestyle='--')
-    data = [[[-196.99999999999966, -237.43999999999974, 15.00000000000091, -80.11999999999945, -83.19999999999953, -200.6399999999997, 23.200000000000898, -112.71999999999966, -193.51999999999967, -185.71999999999971],[-144.3599999999995, -55.91999999999937, -168.03999999999968, -104.63999999999949, -119.99999999999969, -107.91999999999966, -134.51999999999936, -154.31999999999968, -136.83999999999932, -162.15999999999968]],[[-179.47999999999922, -35.079999999999195, -100.71999999999916, -274.1599999999992, -289.3999999999992, -50.199999999999136, -153.83999999999898, -253.95999999999898, -281.19999999999925, -261.79999999999916], [-70.43999999999929, -122.31999999999888, -121.71999999999893, -280.3999999999992, -219.19999999999908, -117.7199999999992, -248.39999999999927, -105.03999999999932, -220.39999999999918, -287.31999999999914]]]
+    save = 'final_plot_data/boxplot_final_per_group.png'
+    plt.grid(axis='y', zorder=1)
+    plt.axhline(y=0, color='Grey', linestyle='--', zorder=1)
+    enemy = [[2, 3, 5, 7], [1, 4, 6, 8]]   #which enemy
+    data = [[[113.36000000000033, 104.2000000000003, 197.6400000000006, 152.64000000000053, 224.16000000000045, 130.08000000000033, 195.12000000000063, 135.3600000000003, 134.56000000000031, 126.44000000000032],
+[154.5600000000005, 203.60000000000062, 129.08000000000033, 205.84000000000052, 188.68000000000035, 193.40000000000035, 145.48000000000067, 156.7600000000003, 125.08000000000068, 147.12000000000032]], [[-42.59999999999949, 71.80000000000055, 36.40000000000056, -75.59999999999947, 14.600000000000804, 71.80000000000086, -1.1999999999992639, -43.999999999999275, -70.39999999999951, 56.20000000000084],
+[73.2000000000005, 62.80000000000077, 34.000000000000824, 55.60000000000082, 30.2000000000007, 18.80000000000055, 43.60000000000073, 149.6000000000006, 73.60000000000082, 4.600000000000776]]]
     for idx, f in enumerate(folders):
-        gain_list_alg1 = data[idx][0] #run_winners(f[0], runs)
-        gain_list_alg2 = data[idx][1] #run_winners(f[1], runs)
+        print(enemy[idx])
+        gain_list_alg1 = data[idx][0] #run_winners(f[0], runs, enemy[idx])
+        gain_list_alg2 = data[idx][1] #run_winners(f[1], runs, enemy[idx])
 
         print(gain_list_alg1)
         print(gain_list_alg2)
@@ -89,13 +92,13 @@ def boxplots(folders, runs):
         #create boxplot
         bp1= ax.boxplot(gain_list_alg1, positions = [((idx+1)*4-2)],  patch_artist=True,
             # Set facecolor to red
-            boxprops=dict(facecolor=[(1), (102/255), (102/255)], alpha = 1), medianprops = dict(color = 'k'), widths = 0.4)
+            boxprops=dict(facecolor=[(1), (102/255), (102/255)], alpha = 1), medianprops = dict(color = 'k'), widths = 0.4, zorder=10000)
         bp2 = ax.boxplot(gain_list_alg2, positions=[((idx + 1) * 4 - 1)],  patch_artist=True,
             # Set facecolor to red
-            boxprops=dict(facecolor=[(102/255), (102/255), (1)], alpha = 1), medianprops = dict(color = 'k'), widths = 0.4 )
+            boxprops=dict(facecolor=[(102/255), (102/255), (1)], alpha = 1), medianprops = dict(color = 'k'), widths = 0.4, zorder=10000)
 
     ax.set_xticklabels(ticklabels, fontsize = 14)
-    plt.ylim(-300, 50)
+    plt.ylim(-100, 300)
     plt.legend([bp1["boxes"][0], bp2["boxes"][0]], ["Islands", "Regulatory"], loc='lower left')
     plt.ylabel('Gain', fontsize=14)
     plt.savefig(save, dpi=300)

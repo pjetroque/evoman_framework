@@ -13,7 +13,7 @@ import copy
 import numpy as np
 from math import fabs,sqrt
 import glob, os
-from bio_functions import crossover, mutation, get_children, fitfunc
+# from bio_functions import crossover, mutation, get_children, fitfunc
 import csv
 import matplotlib.pyplot as plt
 
@@ -46,7 +46,7 @@ def initial(folder):
     weights_data = []
 
     #open data
-    with open(f'{folder}/best_sol_0.csv', newline='', encoding='utf-8') as f:
+    with open(f'{folder}/hillclimbed_best_sol.csv.csv', newline='', encoding='utf-8') as f:
         reader = csv.reader(f, delimiter=',', quoting=csv.QUOTE_NONNUMERIC)
         for row in reader:
             weights_data.append(row)
@@ -95,7 +95,7 @@ def climb(player, env, best_gain):
     print('no better solution found')
 
     #save best option
-    with open(f'{experiment_name}/bestsol.csv', 'w', newline='', encoding='utf-8') as f:
+    with open(f'{experiment_name}/hillclimbed_best_sol.csv', 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
         writer.writerow(player)
 

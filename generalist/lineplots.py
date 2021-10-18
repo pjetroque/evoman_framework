@@ -37,8 +37,8 @@ def retrieve_data(data_folder, runs):
     mean_values = mean_values.reshape(runs, generations)
     mean_of_max = np.mean(max_values, axis=0)
     mean_of_mean = np.mean(mean_values, axis=0)
-    std_of_max = np.std(max_values, axis=0)
-    std_of_mean = np.std(mean_values, axis=0)
+    std_of_max = np.std(max_values, axis=0) / np.sqrt(runs)
+    std_of_mean = np.std(mean_values, axis=0) / np.sqrt(runs)
 
     return mean_of_max, mean_of_mean, std_of_max, std_of_mean, generations
 
@@ -47,16 +47,16 @@ def line_plots(folders, runs):
     '''Creates a line plot for one training group of enemies showing the performance
     of different algorithm results located in folers.'''
 
-    labels = [['Max Euclidean', 'Mean Euclidean'], ['Max Regulatory', 'Mean Regulatory']]
-    colors = ['C0', 'C1']
-    save = 'final_plot_data/lineplot_[2, 3, 5, 7].png'
+    labels = [['Max Islands', 'Mean Islands'], ['Max Regulatory', 'Mean Regulatory']]
+    colors = ['Red', 'Blue']
+    save = 'final_plot_data/lineplot_[1, 4, 6, 8].png'
     fig, ax = plt.subplots()
 
     for i, f in enumerate(folders):
         mean_of_max, mean_of_mean, std_of_max, std_of_mean, generations = retrieve_data(f, runs)
 
         #plotting
-        x = range(1, (len(mean_of_max)+1))
+        x = range(0, (len(mean_of_max)))
         ax.plot(x, mean_of_max, linestyle = "dashed", color = colors[i], label=labels[i][0])
         ax.plot(x, mean_of_mean, color = colors[i], label=labels[i][1])
         ax.fill_between(x,
@@ -66,21 +66,20 @@ def line_plots(folders, runs):
                         mean_of_mean - std_of_mean,
                         mean_of_mean + std_of_mean, color = colors[i], alpha=0.2)
 
-    ax.set_xlim(1, generations)
-    ax.set_xticks(np.arange(1, generations+1, int(generations/10)))
+    ax.set_xlim(0, generations)
+    ax.set_xticks(np.arange(0, generations+1, int(generations/10)))
     # plt.ylim(-110,120)
-    plt.text(12, -300, 'Enemies 2, 3, 5, 7', fontsize=14)
+    plt.text(12, -400, 'Enemies 1, 4, 6, 8', fontsize=14)
     plt.xlabel('Generation', fontsize=14)
     plt.ylabel('Gain', fontsize=14)
-    plt.legend(loc = 'lower right')
+    # plt.legend(loc = 'lower right')
     plt.grid()
     plt.savefig(save, dpi=300)
     plt.show()
 
 
-
-data_folder_alg1 = 'data_normal/enemy_[2, 3, 5, 7]_standard_eucl' #folder with data for algorithm 1
-data_folder_alg2 = 'data_normal/enemy_[2, 3, 5, 7]_standard_reg' #folder with data for algorithm 2
+data_folder_alg1 = 'data_normal/enemy_[1, 4, 6, 8]_standard_eucl' #folder with data for algorithm 1
+data_folder_alg2 = 'data_normal/enemy_[1, 4, 6, 8]_standard_reg' #folder with data for algorithm 2
 runs = 10  #should be 10 for final runs
 folders = [data_folder_alg1, data_folder_alg2]
 line_plots(folders, runs)
